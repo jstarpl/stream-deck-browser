@@ -18,7 +18,7 @@
     "postinstall": "npm run build",
     "dev": "npm run hot-server -- --start-hot",
     "package": "npm run build && build --publish never",
-    "package-win": "npm run build && build --win --x64",
+    "package-win": "npm run build && build --win --x64 && copy ./node_modules/node-hid/bin/win32-x64-69/node-hid.node ./",
     "package-linux": "npm run build && build --linux",
     "package-all": "npm run build && build -mwl",
     "cleanup": "mop -v"
@@ -45,8 +45,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReactTypescript",
-    "appId": "io.github.irath96.ElectronReactTypescript",
+    "productName": "stream-deck-browser",
+    "appId": "io.github.jstarpl.stream-deck-browser",
     "dmg": {
       "contents": [
         {
@@ -70,6 +70,9 @@
       "main.js.map",
       "package.json"
     ],
+    "extraFiles": [
+      "node_modules/node-hid/bin/win32-x64-69/node-hid.node"
+    ],
     "directories": {
       "buildResources": "resources",
       "output": "release"
@@ -89,7 +92,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/irath96/electron-react-typescript-boilerplate.git"
+    "url": "git+https://github.com/jstarpl/stream-deck-browser.git"
   },
   "author": {
     "name": "Alexander Rath",
@@ -98,7 +101,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/irath96/electron-react-typescript-boilerplate/issues"
+    "url": "https://github.com/jstarpl/stream-deck-browser/issues"
   },
   "keywords": [
     "electron",
@@ -109,7 +112,7 @@
     "webpack",
     "react-hot"
   ],
-  "homepage": "https://github.com/irath96/electron-react-typescript-boilerplate#readme",
+  "homepage": "https://github.com/jstarpl/stream-deck-browser#readme",
   "devDependencies": {
     "@types/enzyme": "^3.1.1",
     "@types/history": "^4.5.2",

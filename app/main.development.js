@@ -23,9 +23,9 @@ commander
   .version('0.0.1', '-v, --version')
   .usage('[OPTIONS]...')
   .option('-u, --url', 'Open URL in Stream Deck browser')
-  .option('-s, --showWindow', 'Show rendering window')
   .option('-l, --listDevices', 'List all Stream Deck devices')
   .option('-d, --device', 'Connect to a device with a given serial number')
+  .option('--showWindow', 'Show rendering window')
   .option('--inspect', 'Show Developer Tools')
 
 if (process.defaultApp != true) {
