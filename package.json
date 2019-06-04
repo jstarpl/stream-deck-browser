@@ -18,7 +18,7 @@
     "postinstall": "npm run build",
     "dev": "npm run hot-server -- --start-hot",
     "package": "npm run build && build --publish never",
-    "package-win": "npm run build && build --win --x64 && copy ./node_modules/node-hid/bin/win32-x64-69/node-hid.node ./",
+    "package-win": "npm run build && build --win --x64",
     "package-linux": "npm run build && build --linux",
     "package-all": "npm run build && build -mwl",
     "cleanup": "mop -v"
@@ -47,6 +47,7 @@
   "build": {
     "productName": "stream-deck-browser",
     "appId": "io.github.jstarpl.stream-deck-browser",
+    "asar": true,
     "dmg": {
       "contents": [
         {
@@ -68,10 +69,15 @@
       "app.html",
       "main.js",
       "main.js.map",
-      "package.json"
+      "package.json",
+      "build/",
+      "icon.png"
     ],
     "extraFiles": [
-      "node_modules/node-hid/bin/win32-x64-69/node-hid.node"
+      {
+        "from": "node_modules/node-hid/bin/win32-x64-69/node-hid.node",
+        "to": "build/HID.node"
+      }
     ],
     "directories": {
       "buildResources": "resources",

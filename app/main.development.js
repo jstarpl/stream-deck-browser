@@ -22,9 +22,9 @@ if (process.env.NODE_ENV === 'development') {
 commander
   .version('0.0.1', '-v, --version')
   .usage('[OPTIONS]...')
-  .option('-u, --url', 'Open URL in Stream Deck browser')
+  .option('-u, --url <url>', 'Open URL in Stream Deck browser')
   .option('-l, --listDevices', 'List all Stream Deck devices')
-  .option('-d, --device', 'Connect to a device with a given serial number')
+  .option('-d, --device <device>', 'Connect to a device with a given serial number')
   .option('--showWindow', 'Show rendering window')
   .option('--inspect', 'Show Developer Tools')
 
@@ -34,7 +34,7 @@ if (process.defaultApp != true) {
 
 commander.parse(process.argv)
 
-const url = commander.url || 'http://news.google.com/';
+const url = commander.url || 'http://jeromeetienne.github.io/fireworks.js/examples/cloud/cloud_cluster.html';
 const showWindow = !!commander.showWindow || false;
 const inspect = !!commander.inspect || false;
 const listDevices = !!commander.listDevices || false;
@@ -69,7 +69,7 @@ app.once('ready', () => {
   tray.setToolTip(`Stream Deck Browser: ${deck.MODEL} ${deck.getSerialNumber()}`);
   tray.setContextMenu(contextMenu);
   
-  console.error('Connected to StreamDeck')
+  console.log(`Connected to Stream Deck, Model: ${deck.MODEL}, S/N: ${deck.getSerialNumber()}`)
   
   deck.clearAllKeys();
   
@@ -80,7 +80,7 @@ app.once('ready', () => {
   const STRIDE_BROWSER = 4
   const STRIDE_DECK = 3
   const frame = Buffer.alloc(PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK);
-  console.log('width', PANEL_WIDTH, 'height', PANEL_HEIGHT, PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK)
+  // console.log('width', PANEL_WIDTH, 'height', PANEL_HEIGHT, PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK)
 
   function copyBGRAtoRGB(source, target, targetStart, sourceStart, count) {
     let i = 0;
@@ -130,10 +130,10 @@ app.once('ready', () => {
   if (inspect) window.webContents.toggleDevTools();
   window.once('ready-to-show', () => {
     if (showWindow) window.show();
-    console.log('Ready to Show');
-    console.log(window.getSize());
+    // console.log('Ready to Show');
+    // console.log(window.getSize());
     window.setSize(PANEL_WIDTH, PANEL_HEIGHT);
-    console.log(window.getSize());
+    // console.log(window.getSize());
   })
   window.once('closed', () => {
     window = null;
