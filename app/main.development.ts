@@ -145,11 +145,11 @@ app.once('ready', () => {
       updateBitmap({ x: 0, y: 0, width: imgSize.width, height: imgSize.height }, image)
     })
 
-    window.webContents.beginFrameSubscription(true, (image, dirtyRect) => {
+    window.webContents.beginFrameSubscription(true, (image: NativeImage | Buffer, dirtyRect: Electron.Rectangle) => {
       updateBitmap(dirtyRect, image);
     })
 
-    deck.on('down', (keyIndex) => {
+    deck.on('down', (keyIndex: number) => {
       const { x, y } = keyIndexToXY(keyIndex);
       if (!window) return
       window.webContents.sendInputEvent({
@@ -166,7 +166,7 @@ app.once('ready', () => {
       } as any as Electron.Event)
     })
 
-    deck.on('up', (keyIndex) => {
+    deck.on('up', (keyIndex: number) => {
       const { x, y } = keyIndexToXY(keyIndex);
       if (!window) return
       window.webContents.sendInputEvent({
@@ -179,7 +179,7 @@ app.once('ready', () => {
     })
   })
 
-  deck.on('error', error => {
+  deck.on('error', (error: any) => {
     console.error(error);
   })
 });
