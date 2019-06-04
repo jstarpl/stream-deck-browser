@@ -11,6 +11,14 @@ module.exports = merge(baseConfig, {
 
   entry: ['./app/main.development'],
 
+  module: {
+    loaders: [{
+      test: /\.ts?$/,
+      loaders: ['ts-loader'],
+      exclude: /node_modules/
+    }]
+  },
+
   // 'main.js' in root
   output: {
     path: __dirname,
