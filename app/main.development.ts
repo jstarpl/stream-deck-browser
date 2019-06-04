@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, nativeImage, Tray, NativeImage } from "electron"
-import { listStreamDecks, openStreamDeck } from 'elgato-stream-deck'
+import { listStreamDecks, openStreamDeck, StreamDeck } from 'elgato-stream-deck'
 import * as commander from 'commander'
 import * as path from 'path'
 
@@ -54,7 +54,7 @@ app.once('ready', () => {
     if (device) devicePath = device.path
   }
   
-  const deck = openStreamDeck(devicePath || list[0].path)
+  let deck: StreamDeck | undefined = openStreamDeck(devicePath || list[0].path)
 
   const tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')))
   const contextMenu = Menu.buildFromTemplate([
@@ -98,10 +98,16 @@ app.once('ready', () => {
       const sourceStart = (i * rect.width)
       copyBGRAtoRGB(bmp, frame, targetStart, sourceStart, maxWidth)
     }
-    deck.fillPanel(frame);
+    try {
+      if (deck) deck.fillPanel(frame);
+    } catch (e) {
+      deck = undefined;
+      app.quit();
+    }
   }
 
   function keyIndexToXY (keyIndex: number) {
+    if (!deck) throw new Error('Stream Deck not connected!')
     const y = (Math.floor(keyIndex / deck.KEY_COLUMNS) + 0.5) * deck.ICON_SIZE 
     const x = (keyIndex % deck.KEY_COLUMNS + 0.5) * deck.ICON_SIZE
     return { x, y }
@@ -131,7 +137,7 @@ app.once('ready', () => {
   })
   window.once('closed', () => {
     window = undefined
-    deck.resetToLogo()
+    if (deck) deck.resetToLogo()
   })
   window.webContents.setFrameRate(4)
   window.webContents.once('dom-ready', () => {
@@ -148,6 +154,11 @@ app.once('ready', () => {
     window.webContents.beginFrameSubscription(true, (image: NativeImage | Buffer, dirtyRect: Electron.Rectangle) => {
       updateBitmap(dirtyRect, image);
     })
+
+    if (!deck) {
+      app.quit();
+      return;
+    }
 
     deck.on('down', (keyIndex: number) => {
       const { x, y } = keyIndexToXY(keyIndex);
