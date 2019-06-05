@@ -1,0 +1,32 @@
+body {
+	margin: 0;
+	padding: 0;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background: #000;
+	color: #fff;
+	cursor: default;
+	user-select: none;
+
+	#titlebar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		padding: 5px 9px;
+		line-height: 22px;
+		font-size: 12px;
+
+		> .titlebar {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+
+			> .titlebar-controls {
+				> .titlebar-resize, > .titlebar-minimize {
+					display: none;
+				}
+			}
+		}
+	}
+}

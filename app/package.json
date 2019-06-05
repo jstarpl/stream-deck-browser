@@ -14,6 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "electron-titlebar-windows": "^3.0.0",
     "node-hid": "0.7.0"
   }
 }

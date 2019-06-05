@@ -8,6 +8,7 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install()
 }
 
+
 if (process.env.NODE_ENV === 'development') {
   require('electron-debug')() // eslint-disable-line global-require
   const path = require('path') // eslint-disable-line
@@ -30,7 +31,13 @@ if (process.defaultApp != true) {
 
 commander.parse(process.argv)
 
-const url = commander.url || 'http://jeromeetienne.github.io/fireworks.js/examples/cloud/cloud_cluster.html'
+let DEFAULT_URL = 'http://jeromeetienne.github.io/fireworks.js/examples/cloud/cloud_cluster.html'
+if (process.env.NODE_ENV === 'development') {
+  DEFAULT_URL = 'about:blank'
+}
+const APP_SETTINGS = path.join(__dirname, 'app.html')
+
+const url = commander.url || DEFAULT_URL
 const showWindow = !!commander.showWindow || false
 const inspect = !!commander.inspect || false
 const listDevices = !!commander.listDevices || false
@@ -38,10 +45,35 @@ const deviceSerial = commander.device || undefined
 
 app.disableHardwareAcceleration()
 
+function showSettings() {
+  let settingsWindow = new BrowserWindow({
+    webPreferences: {
+      enableRemoteModule: true,
+      backgroundThrottling: true,
+      nodeIntegration: true,
+      devTools: true
+    },
+    resizable: false,
+    show: false,
+    width: 400,
+    height: 500,
+    frame: false,
+    titleBarStyle: 'customButtonsOnHover'
+  })
+  settingsWindow.loadFile(APP_SETTINGS)
+  settingsWindow.once('ready-to-show', () => {
+    settingsWindow.show()
+    settingsWindow.webContents.toggleDevTools();
+  })
+  settingsWindow.on('close', () => {
+    
+  })
+}
+
 app.once('ready', () => {
   const list = listStreamDecks()
   if (list.length === 0) {
-    console.log('No Stream Deck found')
+    console.log('No Stream Deck found.')
     app.quit()
   }
   if (listDevices) {
@@ -51,16 +83,28 @@ app.once('ready', () => {
   let devicePath = undefined
   if (deviceSerial) {
     const device = list.find(i => i.serialNumber === deviceSerial)
-    if (device) devicePath = device.path
+    if (device) {
+      devicePath = device.path
+    } else {
+      console.error(`Could not find device with S/N: "${deviceSerial}".`)
+      process.exitCode = 2
+      app.quit()
+    }
   }
   
   let deck: StreamDeck | undefined = openStreamDeck(devicePath || list[0].path)
 
   const tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')))
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Settings', type: 'normal', click: () => {
+        showSettings();
+      }
+    },
     { label: 'Quit', type: 'normal', click: () => {
-      app.quit()
-    } }
+        app.quit()
+      }
+    }
   ])
   tray.setToolTip(`Stream Deck Browser: ${deck.MODEL} ${deck.getSerialNumber()}`);
   tray.setContextMenu(contextMenu)
@@ -115,17 +159,16 @@ app.once('ready', () => {
 
   let window: BrowserWindow | undefined = new BrowserWindow({
     webPreferences: {
-      enableRemoteModule: true,
+      enableRemoteModule: false,
       backgroundThrottling: false,
-      nodeIntegration: true,
+      nodeIntegration: false,
     },
     resizable: false,
     show: false,
     autoHideMenuBar: true,
     width: PANEL_WIDTH,
     height: PANEL_HEIGHT,
-    frame: false,
-    titleBarStyle: 'customButtonsOnHover'
+    frame: false
   });
 
   window.loadURL(url)

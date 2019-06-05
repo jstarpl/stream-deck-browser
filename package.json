@@ -175,7 +175,6 @@
   "dependencies": {
     "commander": "^2.20.0",
     "electron-debug": "^1.1.0",
-    "electron-titlebar-windows": "^3.0.0",
     "elgato-stream-deck": "^3.0.0",
     "font-awesome": "^4.7.0",
     "history": "^4.6.1",
