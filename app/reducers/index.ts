@@ -6,6 +6,9 @@ const rootReducer = combineReducers({
 });
 
 export interface IState {
+  settings: {
+    url: string
+  }
 }
 
 export default rootReducer;

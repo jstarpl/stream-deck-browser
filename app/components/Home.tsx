@@ -7,6 +7,10 @@ export default class Home extends React.Component {
     return (
       <div>
         <div className={styles.container} data-tid="container">
+          <label>
+            Load URL
+            <input type="url" value={""} />
+          </label>
         </div>
       </div>
     );
