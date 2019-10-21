@@ -8,7 +8,7 @@ const webpack = require('webpack');
 const merge = require('webpack-merge');
 const baseConfig = require('./webpack.config.base');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3500;
 
 module.exports = merge(baseConfig, {
   devtool: 'inline-source-map',

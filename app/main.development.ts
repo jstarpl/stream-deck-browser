@@ -1,7 +1,11 @@
+/// <reference path="./api/electron.d.ts" />
+
 import { app, BrowserWindow, Menu, nativeImage, Tray, NativeImage, ipcMain, IpcAsyncMessageEvent } from "electron"
 import { listStreamDecks, openStreamDeck, StreamDeck } from 'elgato-stream-deck'
+import { CommandMessage, CommandMessageType } from './api/CommandMessage'
 import * as commander from 'commander'
 import * as path from 'path'
+const packageInfo = require('./package.json')
 
 if (process.env.NODE_ENV === 'production') {
 	const sourceMapSupport = require('source-map-support') // eslint-disable-line
@@ -17,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 commander
-	.version('0.0.1', '-v, --version')
+	.version(packageInfo.version, '-v, --version')
 	.usage('[OPTIONS]...')
 	.option('-u, --url <url>', 'Open URL in Stream Deck browser')
 	.option('-l, --listDevices', 'List all Stream Deck devices')
@@ -38,6 +42,7 @@ if (process.env.NODE_ENV === 'development') {
 const APP_SETTINGS = path.join(__dirname, 'app.html')
 
 const url = commander.url || DEFAULT_URL
+let currentUrl = url
 const showWindow = !!commander.showWindow || false
 const inspect = !!commander.inspect || false
 const listDevices = !!commander.listDevices || false
@@ -97,7 +102,7 @@ app.once('ready', () => {
 	const tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')))
 	const contextMenu = Menu.buildFromTemplate([
 		{
-			label: 'Settings', type: 'normal', click: () => {
+			label: 'About', type: 'normal', click: () => {
 				showSettings();
 			}
 		},
@@ -171,7 +176,9 @@ app.once('ready', () => {
 		frame: false
 	});
 
-	window.loadURL(url)
+	window.loadURL(currentUrl, {
+		userAgent: window.webContents.getUserAgent() + ` ${packageInfo.name}/${packageInfo.version}`
+	})
 	if (inspect) window.webContents.toggleDevTools()
 	window.once('ready-to-show', () => {
 		if (!window) return
@@ -183,6 +190,18 @@ app.once('ready', () => {
 		if (deck) deck.resetToLogo()
 	})
 	window.webContents.setFrameRate(4)
+	window.webContents.on('did-start-navigation', (event, url, isInPlace, isMainFrame) => {
+		if (isMainFrame) {
+			currentUrl = url
+		}
+
+		window!.webContents.send('asynchronous-message', {
+			type: CommandMessageType.SET_SETTINGS,
+			settings: {
+				currentUrl
+			}
+		})
+	})
 	window.webContents.once('dom-ready', () => {
 		if (!window) return
 		const requestSize = { x: 0, y: 0, width: PANEL_WIDTH, height: PANEL_HEIGHT }
@@ -240,18 +259,20 @@ app.once('ready', () => {
 	ipcMain.on('asynchronous-message', (event: IpcAsyncMessageEvent, arg: CommandMessage) => {
 		switch (arg.type) {
 			case CommandMessageType.GET_SETTINGS:
-				event.reply('asynchronous-reply', {
+				window!.webContents.send('asynchronous-message', {
 					type: CommandMessageType.SET_SETTINGS,
 					settings: {
 						url,
+						currentUrl,
 						showWindow,
 						inspect,
-						deviceSerial
+						deviceSerial,
+						deviceList: list
 					}
 				})
 				break;
 			case CommandMessageType.SET_SETTINGS:
-				event.reply('asynchronous-reply', {
+				window!.webContents.send('asynchronous-message', {
 					type: CommandMessageType.ACK
 				})
 				break;

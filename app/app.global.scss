@@ -8,6 +8,17 @@ body {
 	user-select: none;
 	background: rgb(71, 0, 104);
 
+	input {
+		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	}
+
+	button {
+		&:focus {
+			outline: none;
+			box-shadow: none;
+		}
+	}
+
 	#titlebar {
 		position: absolute;
 		top: 0;

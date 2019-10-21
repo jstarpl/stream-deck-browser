@@ -15,7 +15,7 @@ const argv = require('minimist')(process.argv.slice(2));
 
 const app = express();
 const compiler = webpack(config);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3500;
 
 const wdm = webpackDevMiddleware(compiler, {
   publicPath: config.output.publicPath,
