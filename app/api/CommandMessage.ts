@@ -7,4 +7,5 @@ export enum CommandMessageType {
 
 export interface CommandMessage {
 	type: CommandMessageType
+	[key: string]: any
 }

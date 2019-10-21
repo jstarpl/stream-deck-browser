@@ -46,7 +46,9 @@ let currentUrl = url
 const showWindow = !!commander.showWindow || false
 const inspect = !!commander.inspect || false
 const listDevices = !!commander.listDevices || false
-const deviceSerial = commander.device || undefined
+let deviceSerial = commander.device || undefined
+
+let tray: Tray
 
 app.disableHardwareAcceleration()
 
@@ -68,7 +70,10 @@ function showSettings() {
 	settingsWindow.loadFile(APP_SETTINGS)
 	settingsWindow.once('ready-to-show', () => {
 		settingsWindow.show()
-		settingsWindow.webContents.toggleDevTools();
+
+		if (inspect) {
+			settingsWindow.webContents.toggleDevTools()
+		}
 	})
 	settingsWindow.on('close', () => {
 		
@@ -99,7 +104,9 @@ app.once('ready', () => {
 	
 	let deck: StreamDeck | undefined = openStreamDeck(devicePath || list[0].path)
 
-	const tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')))
+	deviceSerial = deck.getSerialNumber()
+
+	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')))
 	const contextMenu = Menu.buildFromTemplate([
 		{
 			label: 'About', type: 'normal', click: () => {
@@ -111,10 +118,10 @@ app.once('ready', () => {
 			}
 		}
 	])
-	tray.setToolTip(`Stream Deck Browser: ${deck.MODEL} ${deck.getSerialNumber()}`);
+	tray.setToolTip(`Stream Deck Browser: ${deck.MODEL} ${deviceSerial}`);
 	tray.setContextMenu(contextMenu)
 	
-	console.log(`Connected to Stream Deck, Model: ${deck.MODEL}, S/N: ${deck.getSerialNumber()}`)
+	console.log(`Connected to Stream Deck, Model: ${deck.MODEL}, S/N: ${deviceSerial}`)
 	
 	deck.clearAllKeys()
 	
@@ -162,6 +169,12 @@ app.once('ready', () => {
 		return { x, y }
 	}
 
+	function openInDeck (url: string) {
+		window!.loadURL(url, {
+			userAgent: window!.webContents.getUserAgent() + ` ${packageInfo.name}/${packageInfo.version}`
+		})
+	}
+
 	let window: BrowserWindow | undefined = new BrowserWindow({
 		webPreferences: {
 			enableRemoteModule: false,
@@ -176,9 +189,7 @@ app.once('ready', () => {
 		frame: false
 	});
 
-	window.loadURL(currentUrl, {
-		userAgent: window.webContents.getUserAgent() + ` ${packageInfo.name}/${packageInfo.version}`
-	})
+	openInDeck(currentUrl)
 	if (inspect) window.webContents.toggleDevTools()
 	window.once('ready-to-show', () => {
 		if (!window) return
@@ -259,7 +270,7 @@ app.once('ready', () => {
 	ipcMain.on('asynchronous-message', (event: IpcAsyncMessageEvent, arg: CommandMessage) => {
 		switch (arg.type) {
 			case CommandMessageType.GET_SETTINGS:
-				window!.webContents.send('asynchronous-message', {
+				event.sender.send('asynchronous-message', {
 					type: CommandMessageType.SET_SETTINGS,
 					settings: {
 						url,
@@ -272,7 +283,11 @@ app.once('ready', () => {
 				})
 				break;
 			case CommandMessageType.SET_SETTINGS:
-				window!.webContents.send('asynchronous-message', {
+				if (arg.settings.currentUrl !== currentUrl) {
+					currentUrl = arg.settings.currentUrl
+					openInDeck(currentUrl)
+				}
+				event.sender.send('asynchronous-message', {
 					type: CommandMessageType.ACK
 				})
 				break;

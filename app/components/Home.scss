@@ -3,17 +3,16 @@
     position: absolute;
     top: 30%;
     left: 25px;
-    text-align: center;
+    text-align: left;
     width: calc(100% - 2 * 30px);
   }
 
   .container h2 {
-    font-size: 5rem;
+    font-size: 0.8em;
+    text-transform: uppercase;
   }
 
-  .container a {
-    font-size: 1.4rem;
-  }
+
 
   .container {
     label {
@@ -22,7 +21,7 @@
       text-align: left;
 
       > span {
-        padding: 5px;
+        padding: 5px 0;
         font-size: 0.8em;
         display: block;
       }
@@ -64,6 +63,19 @@
       input[type="url"] {
         padding-right: 30px;
         width: calc(100% - 25px);
+      }
+    }
+
+    ul {
+      padding: 0;
+      margin: 0;
+
+      font-size: 0.8em;
+
+      > li {
+        padding: 0;
+        margin: 0;
+        list-style: none;
       }
     }
   }

@@ -19,12 +19,13 @@ export default class Home extends React.Component<any, IState> {
     }
   }
 
-  onAsynchronousMessage = (event: Event, channel: string, e: any) => {
-    console.log(event, channel, e)
+  onAsynchronousMessage = (event: Event, e: any) => {
     switch (e.type) {
       case CommandMessageType.SET_SETTINGS:
+        console.log(e)
         this.setState({
-          settings: e.settings
+          settings: e.settings,
+          url: e.settings.currentUrl
         })
         break
     }
@@ -39,8 +40,12 @@ export default class Home extends React.Component<any, IState> {
     })
   }
 
-  componentDidUpdate () {
-
+  componentDidUpdate (prevProps: any, prevState: IState) {
+    if (this.state.settings.currentUrl !== this.state.settings.currentUrl) {
+      this.setState({
+        url: this.state.settings.currentUrl
+      })
+    }
   }
 
   onUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,15 +63,29 @@ export default class Home extends React.Component<any, IState> {
     })
   }
 
+  onUrlFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.select()
+  }
+
   render() {
     return (
       <div>
         <div className={styles.container} data-tid="container">
+          <form onSubmit={(e) => e.preventDefault()}>
+            <label>
+              <span>Load URL</span>
+              <input type="url" value={this.state.url} onChange={this.onUrlChange} onFocus={this.onUrlFocus} />
+              <button type="submit" onClick={this.onUrlNavigate}>🡺</button>
+            </label>
+          </form>
           <label>
-            <span>Load URL</span>
-            <input type="url" value={this.state.url} onChange={this.onUrlChange} />
-            <button onClick={this.onUrlNavigate}>🡺</button>
+            <span>Stream Deck S/N</span>
+            <input type="text" value={this.state.settings.deviceSerial} readOnly={true} />
           </label>
+          <h2>Stream Deck devices</h2>
+          <ul>
+            {(this.state.settings.deviceList || []).map((d: any) => <li>{d.model}: {d.serialNumber}</li>)}
+          </ul>
         </div>
       </div>
     )
