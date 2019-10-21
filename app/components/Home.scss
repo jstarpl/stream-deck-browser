@@ -1,7 +1,7 @@
 :local {
   .container {
     position: absolute;
-    top: 30%;
+    top: 35px;
     left: 25px;
     text-align: left;
     width: calc(100% - 2 * 30px);
@@ -15,6 +15,17 @@
 
 
   .container {
+    .usage {
+      font-family: 'Consolas', 'Courier New', 'Lucida Sans Typewriter', Courier, monospace;
+      border: 1px solid darken(rgb(71, 0, 104), 10%);
+      background: lighten(rgb(71, 0, 104), 7%);
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2) inset;
+      white-space: pre;
+      font-size: 0.8em;
+      overflow: auto;
+      margin-bottom: 10px;
+    }
+
     label {
       display: block;
       position: relative;
@@ -68,7 +79,7 @@
 
     ul {
       padding: 0;
-      margin: 0;
+      margin: 0 0 20px;
 
       font-size: 0.8em;
 

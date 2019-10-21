@@ -20,13 +20,14 @@ body {
 	}
 
 	#titlebar {
-		position: absolute;
+		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;
 		padding: 5px 9px;
 		line-height: 22px;
 		font-size: 12px;
+		background: rgb(71, 0, 104);
 
 		> .titlebar {
 			position: absolute;
@@ -41,4 +42,29 @@ body {
 			}
 		}
 	}
+
+	dfn {
+		font-style: normal;
+		display: inline-block;
+		vertical-align: top;
+		border-bottom: 1px dotted rgba(255, 255, 255, 0.3);
+	}
+}
+
+::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	background-color: darken(rgb(71, 0, 104), 5%);
+}
+
+::-webkit-scrollbar
+{
+	width: 6px;
+	height: 6px;
+	background-color: darken(rgb(71, 0, 104), 3%);
+}
+
+::-webkit-scrollbar-thumb
+{
+	background-color: darken(rgb(71, 0, 104), 15%);
 }

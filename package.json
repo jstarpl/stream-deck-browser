@@ -1,7 +1,7 @@
 {
   "name": "stream-deck-browser",
   "productName": "Stream Deck Browser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A web browser running on your Elgato Stream Deck",
   "main": "main.js",
   "scripts": {

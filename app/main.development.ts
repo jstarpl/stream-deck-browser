@@ -1,7 +1,7 @@
 /// <reference path="./api/electron.d.ts" />
 
-import { app, BrowserWindow, Menu, nativeImage, Tray, NativeImage, ipcMain, IpcAsyncMessageEvent } from "electron"
-import { listStreamDecks, openStreamDeck, StreamDeck } from 'elgato-stream-deck'
+import { app, BrowserWindow, Menu, nativeImage, Tray, NativeImage, ipcMain, IpcAsyncMessageEvent, screen } from "electron"
+import { listStreamDecks, openStreamDeck, StreamDeck, StreamDeckDeviceInfo } from 'elgato-stream-deck'
 import { CommandMessage, CommandMessageType } from './api/CommandMessage'
 import * as commander from 'commander'
 import * as path from 'path'
@@ -35,7 +35,7 @@ if (process.defaultApp != true) {
 
 commander.parse(process.argv)
 
-let DEFAULT_URL = 'http://jeromeetienne.github.io/fireworks.js/examples/cloud/cloud_cluster.html'
+let DEFAULT_URL = 'https://github.com/jstarpl/stream-deck-browser'
 if (process.env.NODE_ENV === 'development') {
 	DEFAULT_URL = 'about:blank'
 }
@@ -47,13 +47,20 @@ const showWindow = !!commander.showWindow || false
 const inspect = !!commander.inspect || false
 const listDevices = !!commander.listDevices || false
 let deviceSerial = commander.device || undefined
+let list: StreamDeckDeviceInfo[] = []
 
+let aboutWindow: BrowserWindow | undefined
 let tray: Tray
 
 app.disableHardwareAcceleration()
 
-function showSettings() {
-	let settingsWindow = new BrowserWindow({
+function showAbout() {
+	const point = screen.getCursorScreenPoint()
+	const display = screen.getDisplayNearestPoint(point)
+
+	const isDarwin = (process.platform === 'darwin')
+
+	aboutWindow = new BrowserWindow({
 		webPreferences: {
 			enableRemoteModule: true,
 			backgroundThrottling: true,
@@ -64,24 +71,28 @@ function showSettings() {
 		show: false,
 		width: 400,
 		height: 500,
+		x: display.bounds.x + display.workArea.x + display.workArea.width - 400,
+		y: isDarwin ?
+			display.bounds.y + display.workArea.y + 20 :
+			display.bounds.y + display.workArea.y + display.workArea.height - 500,
 		frame: false,
 		titleBarStyle: 'customButtonsOnHover'
 	})
-	settingsWindow.loadFile(APP_SETTINGS)
-	settingsWindow.once('ready-to-show', () => {
-		settingsWindow.show()
+	aboutWindow.loadFile(APP_SETTINGS)
+	aboutWindow.once('ready-to-show', () => {
+		aboutWindow!.show()
 
 		if (inspect) {
-			settingsWindow.webContents.toggleDevTools()
+			aboutWindow!.webContents.toggleDevTools()
 		}
 	})
-	settingsWindow.on('close', () => {
-		
+	aboutWindow.on('close', () => {
+		aboutWindow = undefined
 	})
 }
 
 app.once('ready', () => {
-	const list = listStreamDecks()
+	list = listStreamDecks()
 	if (list.length === 0) {
 		console.log('No Stream Deck found.')
 		app.quit()
@@ -110,10 +121,10 @@ app.once('ready', () => {
 	const contextMenu = Menu.buildFromTemplate([
 		{
 			label: 'About', type: 'normal', click: () => {
-				showSettings();
+				showAbout();
 			}
 		},
-		{ label: 'Quit', type: 'normal', click: () => {
+		{ label: 'Exit', type: 'normal', click: () => {
 				app.quit()
 			}
 		}
@@ -170,9 +181,7 @@ app.once('ready', () => {
 	}
 
 	function openInDeck (url: string) {
-		window!.loadURL(url, {
-			userAgent: window!.webContents.getUserAgent() + ` ${packageInfo.name}/${packageInfo.version}`
-		})
+		window!.loadURL(url)
 	}
 
 	let window: BrowserWindow | undefined = new BrowserWindow({
@@ -180,6 +189,8 @@ app.once('ready', () => {
 			enableRemoteModule: false,
 			backgroundThrottling: false,
 			nodeIntegration: false,
+			allowRunningInsecureContent: true,
+			contextIsolation: true
 		},
 		resizable: false,
 		show: false,
@@ -206,12 +217,17 @@ app.once('ready', () => {
 			currentUrl = url
 		}
 
-		window!.webContents.send('asynchronous-message', {
-			type: CommandMessageType.SET_SETTINGS,
-			settings: {
-				currentUrl
-			}
-		})
+		if (aboutWindow) {
+			aboutWindow.webContents.send('asynchronous-message', {
+				type: CommandMessageType.SET_SETTINGS,
+				settings: {
+					currentUrl
+				}
+			})
+		}
+	})
+	window.webContents.on('did-finish-load', () => {
+		window!.webContents.insertCSS('html, body { overflow: hidden !important; }')
 	})
 	window.webContents.once('dom-ready', () => {
 		if (!window) return
@@ -269,6 +285,15 @@ app.once('ready', () => {
 
 	ipcMain.on('asynchronous-message', (event: IpcAsyncMessageEvent, arg: CommandMessage) => {
 		switch (arg.type) {
+			case CommandMessageType.GET_HELP:
+				commander.outputHelp((str) => {
+					event.sender.send('asynchronous-message', {
+						type: CommandMessageType.RETURN_HELP,
+						help: str
+					})
+					return ''
+				})
+				break
 			case CommandMessageType.GET_SETTINGS:
 				event.sender.send('asynchronous-message', {
 					type: CommandMessageType.SET_SETTINGS,
@@ -281,7 +306,7 @@ app.once('ready', () => {
 						deviceList: list
 					}
 				})
-				break;
+				break
 			case CommandMessageType.SET_SETTINGS:
 				if (arg.settings.currentUrl !== currentUrl) {
 					currentUrl = arg.settings.currentUrl
@@ -290,7 +315,7 @@ app.once('ready', () => {
 				event.sender.send('asynchronous-message', {
 					type: CommandMessageType.ACK
 				})
-				break;
+				break
 		}
 	})
-});
+})

@@ -6,7 +6,8 @@ let styles = require('./Home.scss')
 
 interface IState {
   url: string,
-  settings: any
+  settings: any,
+  help: string
 }
 
 export default class Home extends React.Component<any, IState> {
@@ -15,17 +16,22 @@ export default class Home extends React.Component<any, IState> {
 
     this.state = {
       url: '',
-      settings: {}
+      settings: {},
+      help: ''
     }
   }
 
   onAsynchronousMessage = (event: Event, e: any) => {
     switch (e.type) {
       case CommandMessageType.SET_SETTINGS:
-        console.log(e)
         this.setState({
-          settings: e.settings,
+          settings: Object.assign({}, this.state.settings, e.settings),
           url: e.settings.currentUrl
+        })
+        break
+      case CommandMessageType.RETURN_HELP:
+        this.setState({
+          help: e.help
         })
         break
     }
@@ -37,6 +43,9 @@ export default class Home extends React.Component<any, IState> {
 
     ipcRenderer.send('asynchronous-message', {
       type: CommandMessageType.GET_SETTINGS
+    })
+    ipcRenderer.send('asynchronous-message', {
+      type: CommandMessageType.GET_HELP
     })
   }
 
@@ -71,9 +80,12 @@ export default class Home extends React.Component<any, IState> {
     return (
       <div>
         <div className={styles.container} data-tid="container">
+          <div className={styles.usage}>
+            {this.state.help}
+          </div>
           <form onSubmit={(e) => e.preventDefault()}>
             <label>
-              <span>Load URL</span>
+              <span>URL</span>
               <input type="url" value={this.state.url} onChange={this.onUrlChange} onFocus={this.onUrlFocus} />
               <button type="submit" onClick={this.onUrlNavigate}>🡺</button>
             </label>
@@ -83,9 +95,7 @@ export default class Home extends React.Component<any, IState> {
             <input type="text" value={this.state.settings.deviceSerial} readOnly={true} />
           </label>
           <h2>Stream Deck devices</h2>
-          <ul>
-            {(this.state.settings.deviceList || []).map((d: any) => <li>{d.model}: {d.serialNumber}</li>)}
-          </ul>
+          <ul>{(this.state.settings.deviceList || []).map((d: any) => <li><dfn title={d.path}>{d.serialNumber}</dfn> ({d.model})</li>)}</ul>
         </div>
       </div>
     )
