@@ -45,7 +45,7 @@
     ]
   },
   "build": {
-    "productName": "stream-deck-browser",
+    "productName": "Stream Deck Browser",
     "appId": "io.github.jstarpl.stream-deck-browser",
     "asar": true,
     "dmg": {
@@ -84,7 +84,8 @@
       "output": "release"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "publish": [ "github" ]
     },
     "linux": {
       "target": [
@@ -100,23 +101,23 @@
     "type": "git",
     "url": "git+https://github.com/jstarpl/stream-deck-browser.git"
   },
-  "author": {
-    "name": "Alexander Rath",
-    "email": "irath96@gmail.com",
-    "url": "https://github.com/irath96"
-  },
+  "authors": [
+    {
+      "name": "Jan Starzak",
+      "email": "jan.starzak@gmail.com",
+      "url": "https://github.com/jstarpl"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jstarpl/stream-deck-browser/issues"
   },
   "keywords": [
+    "stream-deck",
+    "browser",
+    "html",
     "electron",
-    "boilerplate",
-    "react",
-    "react-router",
-    "flux",
-    "webpack",
-    "react-hot"
+    "react"
   ],
   "homepage": "https://github.com/jstarpl/stream-deck-browser#readme",
   "devDependencies": {
