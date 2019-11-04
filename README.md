@@ -11,7 +11,8 @@ Options:
   -u, --url          Open URL in Stream Deck browser
   -l, --listDevices  List all Stream Deck devices
   -d, --device       Connect to a device with a given serial number
-  --showWindow   Show rendering window
+  --showWindow       Show rendering window
+  --brightness       Set brightness to 0-100
   --inspect          Show Developer Tools
   -h, --help         output usage information
 ```
