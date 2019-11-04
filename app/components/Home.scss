@@ -1,4 +1,6 @@
 :local {
+  $key-color: rgb(71, 0, 104);
+
   .container {
     position: absolute;
     top: 35px;
@@ -17,8 +19,8 @@
   .container {
     .usage {
       font-family: 'Consolas', 'Courier New', 'Lucida Sans Typewriter', Courier, monospace;
-      border: 1px solid darken(rgb(71, 0, 104), 10%);
-      background: lighten(rgb(71, 0, 104), 7%);
+      border: 1px solid darken($key-color, 10%);
+      background: lighten($key-color, 7%);
       box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2) inset;
       white-space: pre;
       font-size: 0.8em;
@@ -40,8 +42,8 @@
       input[type="text"], input[type="url"], input[type="email"] {
         display: block;
         width: 100%;
-        border: 1px solid lighten(rgb(71, 0, 104), 10%);
-        background: darken(rgb(71, 0, 104), 7%);
+        border: 1px solid lighten($key-color, 10%);
+        background: darken($key-color, 7%);
         color: #fff;
         padding: 5px;
 
@@ -63,17 +65,61 @@
         width: 29px;
 
         &:hover {
-          background: lighten(rgb(71, 0, 104), 10%);
+          background: lighten($key-color, 10%);
         }
 
         &:active {
-          background: darken(rgb(71, 0, 104), 20%);
+          background: darken($key-color, 20%);
         }
       }
 
       input[type="url"] {
         padding-right: 30px;
         width: calc(100% - 25px);
+      }
+
+      input[type=range] {
+        -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+        width: 100%; /* Specific width is required for Firefox. */
+        background: transparent; /* Otherwise white in Chrome */
+        margin-bottom: 10px;
+      }
+
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+      }
+
+      input[type=range]:focus {
+        outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+      }
+
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        border: 1px solid lighten($key-color, 5%);
+        border-radius: 100%;
+        height: 15px;
+        width: 15px;
+        background: lighten($key-color, 10%);
+        cursor: pointer;
+        margin-top: -6px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+        box-shadow: 1px 1px 20px rgba(0, 0, 0, 0.2); /* Add cool effects to your sliders! */
+      }
+
+      input[type=range]:focus::-webkit-slider-thumb {
+        border: 1px solid lighten($key-color, 10%);
+      }
+
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 4px;
+        cursor: pointer;
+        box-shadow: none;
+        background: darken($key-color, 7%);
+        border-radius: 10px;
+      }
+
+      input[type=range]:focus::-webkit-slider-runnable-track {
+        background: darken($key-color, 10%);
       }
     }
 

@@ -6,6 +6,7 @@ let styles = require('./Home.scss')
 
 interface IState {
   url: string,
+  brightness: number,
   settings: any,
   help: string
 }
@@ -16,6 +17,7 @@ export default class Home extends React.Component<any, IState> {
 
     this.state = {
       url: '',
+      brightness: 0,
       settings: {},
       help: ''
     }
@@ -50,9 +52,14 @@ export default class Home extends React.Component<any, IState> {
   }
 
   componentDidUpdate (prevProps: any, prevState: IState) {
-    if (this.state.settings.currentUrl !== this.state.settings.currentUrl) {
+    if (this.state.settings.currentUrl !== prevState.settings.currentUrl) {
       this.setState({
-        url: this.state.settings.currentUrl
+        url: this.state.settings.currentUrl,
+      })
+    }
+    if (this.state.settings.brightness !== prevState.settings.brightness) {
+      this.setState({
+        brightness: this.state.settings.brightness
       })
     }
   }
@@ -76,6 +83,19 @@ export default class Home extends React.Component<any, IState> {
     e.currentTarget.select()
   }
 
+  onBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({
+      brightness: parseInt(e.currentTarget.value)
+    }, () => {
+      ipcRenderer.send('asynchronous-message', {
+        type: CommandMessageType.SET_SETTINGS,
+        settings: {
+          brightness: this.state.brightness
+        }
+      })
+    })
+  }
+
   render() {
     return (
       <div>
@@ -90,6 +110,10 @@ export default class Home extends React.Component<any, IState> {
               <button type="submit" onClick={this.onUrlNavigate}>🡺</button>
             </label>
           </form>
+          <label>
+            <span>Brightness</span>
+            <input type="range" value={this.state.brightness} onChange={this.onBrightnessChange} min={0} max={100} />
+          </label>
           <label>
             <span>Stream Deck S/N</span>
             <input type="text" value={this.state.settings.deviceSerial} readOnly={true} />

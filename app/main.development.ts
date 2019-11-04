@@ -5,6 +5,7 @@ import { listStreamDecks, openStreamDeck, StreamDeck, StreamDeckDeviceInfo } fro
 import { CommandMessage, CommandMessageType } from './api/CommandMessage'
 import * as commander from 'commander'
 import * as path from 'path'
+import * as settings from 'electron-settings'
 const packageInfo = require('./package.json')
 
 if (process.env.NODE_ENV === 'production') {
@@ -26,6 +27,7 @@ commander
 	.option('-u, --url <url>', 'Open URL in Stream Deck browser')
 	.option('-l, --listDevices', 'List all Stream Deck devices')
 	.option('-d, --device <device>', 'Connect to a device with a given serial number')
+	.option('--brightness <level>', 'Set brightness level to 0-100')
 	.option('--showWindow', 'Show rendering window')
 	.option('--inspect', 'Show Developer Tools')
 
@@ -39,10 +41,12 @@ let DEFAULT_URL = 'https://github.com/jstarpl/stream-deck-browser'
 if (process.env.NODE_ENV === 'development') {
 	DEFAULT_URL = 'about:blank'
 }
+const DEFAULT_BRIGHTNESS = 75
 const APP_SETTINGS = path.join(__dirname, 'app.html')
 
-const url = commander.url || DEFAULT_URL
+let url = commander.url || DEFAULT_URL
 let currentUrl = url
+let brightness = commander.brightness || DEFAULT_BRIGHTNESS
 const showWindow = !!commander.showWindow || false
 const inspect = !!commander.inspect || false
 const listDevices = !!commander.listDevices || false
@@ -70,11 +74,11 @@ function showAbout() {
 		resizable: false,
 		show: false,
 		width: 400,
-		height: 500,
+		height: 550,
 		x: display.bounds.x + display.workArea.x + display.workArea.width - 400,
 		y: isDarwin ?
 			display.bounds.y + display.workArea.y + 20 :
-			display.bounds.y + display.workArea.y + display.workArea.height - 500,
+			display.bounds.y + display.workArea.y + display.workArea.height - 550,
 		frame: false,
 		titleBarStyle: 'customButtonsOnHover'
 	})
@@ -92,6 +96,10 @@ function showAbout() {
 }
 
 app.once('ready', () => {
+	url = commander.url || settings.get('url', DEFAULT_URL)
+	currentUrl = url
+	brightness = commander.brightness || settings.get('brightness', DEFAULT_BRIGHTNESS)
+
 	list = listStreamDecks()
 	if (list.length === 0) {
 		console.log('No Stream Deck found.')
@@ -115,6 +123,7 @@ app.once('ready', () => {
 	
 	let deck: StreamDeck | undefined = openStreamDeck(devicePath || list[0].path)
 
+	deck.setBrightness(brightness)
 	deviceSerial = deck.getSerialNumber()
 
 	tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')))
@@ -182,6 +191,11 @@ app.once('ready', () => {
 
 	function openInDeck (url: string) {
 		window!.loadURL(url)
+	}
+
+	function setBrightness (level: number) {
+		if (!deck) throw new Error('Stream Deck not connected!')
+		deck.setBrightness(Math.max(0, Math.min(100, level)))
 	}
 
 	let window: BrowserWindow | undefined = new BrowserWindow({
@@ -303,14 +317,21 @@ app.once('ready', () => {
 						showWindow,
 						inspect,
 						deviceSerial,
+						brightness,
 						deviceList: list
 					}
 				})
 				break
 			case CommandMessageType.SET_SETTINGS:
-				if (arg.settings.currentUrl !== currentUrl) {
+				if (arg.settings.currentUrl !== undefined && arg.settings.currentUrl !== currentUrl) {
 					currentUrl = arg.settings.currentUrl
+					settings.set('url', currentUrl)
 					openInDeck(currentUrl)
+				}
+				if (arg.settings.brightness !== undefined && arg.settings.brightness !== brightness) {
+					brightness = arg.settings.brightness
+					settings.set('brightness', brightness)
+					setBrightness(brightness)
 				}
 				event.sender.send('asynchronous-message', {
 					type: CommandMessageType.ACK
