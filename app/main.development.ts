@@ -225,7 +225,6 @@ app.once('ready', () => {
 		window = undefined
 		if (deck) deck.resetToLogo()
 	})
-	window.webContents.setFrameRate(4)
 	window.webContents.on('did-start-navigation', (event, url, isInPlace, isMainFrame) => {
 		if (isMainFrame) {
 			currentUrl = url
@@ -248,18 +247,16 @@ app.once('ready', () => {
 		const requestSize = { x: 0, y: 0, width: PANEL_WIDTH, height: PANEL_HEIGHT }
 		
 		window.webContents.capturePage(requestSize, (image) => {
-			// console.log('Captured!');
-			const imgSize = image.getSize();
-			// console.log(imgSize)
+			const imgSize = image.getSize()
 			updateBitmap({ x: 0, y: 0, width: imgSize.width, height: imgSize.height }, image)
 		})
 
-		window.webContents.beginFrameSubscription(true, (image: NativeImage | Buffer, dirtyRect: Electron.Rectangle) => {
-			updateBitmap(dirtyRect, image);
+		window.webContents.on('paint', (e, dirtyRect, image) => {
+			updateBitmap(dirtyRect, image)
 		})
 
 		if (!deck) {
-			app.quit();
+			app.quit()
 			return;
 		}
 
