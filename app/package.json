@@ -1,7 +1,7 @@
 {
   "name": "stream-deck-browser",
   "productName": "stream-deck-browser",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A web browser running on your Elgato Stream Deck",
   "main": "./main.js",
   "author": {
@@ -16,6 +16,12 @@
   "dependencies": {
     "electron-settings": "^3.2.0",
     "electron-titlebar-windows": "^3.0.0",
-    "node-hid": "0.7.0"
+    "node-hid": "0.7.0",
+    "@julusian/jpeg-turbo": "0.5.4"
+  },
+  "resolutions": {
+    "growl": "^1.10.0",
+    "minimist": "^1.2.3",
+    "acorn": "^5.7.4"
   }
 }

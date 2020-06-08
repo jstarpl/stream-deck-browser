@@ -1,7 +1,7 @@
 {
   "name": "stream-deck-browser",
   "productName": "Stream Deck Browser",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A web browser running on your Elgato Stream Deck",
   "main": "main.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "electron-rebuild": "electron-rebuild",
     "build": "npm run build-main && npm run build-renderer",
     "start": "cross-env NODE_ENV=production electron ./app/",
-    "start-hot": "tsc -p tsconfig.electron-main.json && cross-env HOT=1 NODE_ENV=development electron ./app/main.development",
+    "start-hot": "tsc -p tsconfig.electron-main.json && cross-env HOT=1 NODE_ENV=development electron --inspect ./app/main.development",
     "postinstall": "npm run build",
     "dev": "npm run hot-server -- --start-hot",
     "package": "npm run build && build --publish never",
@@ -78,6 +78,10 @@
       {
         "from": "node_modules/node-hid/bin/win32-x64-69/node-hid.node",
         "to": "build/HID.node"
+      },
+      {
+        "from": "node_modules/@julusian/jpeg-turbo/build/Release/jpegturbo.node",
+        "to": "build/jpegturbo.node"
       }
     ],
     "directories": {
@@ -170,7 +174,7 @@
     "ts-loader": "^3.1.0",
     "ts-node": "^4.1.0",
     "tslint": "^5.4.3",
-    "typescript": "^2.4.1",
+    "typescript": "^3.7.5",
     "url-loader": "^0.6.1",
     "webpack": "^3.3.0",
     "webpack-dev-middleware": "^2.0.3",
@@ -178,9 +182,10 @@
     "webpack-merge": "^4.1.1"
   },
   "dependencies": {
+    "@julusian/jpeg-turbo": "0.5.4",
     "commander": "^2.20.0",
     "electron-debug": "^1.1.0",
-    "elgato-stream-deck": "^3.2.0",
+    "elgato-stream-deck": "^3.3.0",
     "font-awesome": "^4.7.0",
     "history": "^4.6.1",
     "node-hid": "0.7.0",
@@ -197,5 +202,10 @@
   "devEngines": {
     "node": ">=6.x",
     "npm": ">=3.x"
+  },
+  "resolutions": {
+    "minimist": "^0.2.1",
+    "kind-of": "^6.0.3",
+    "js-yaml": "^3.13.1"
   }
 }
