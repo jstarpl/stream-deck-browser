@@ -12,17 +12,27 @@ module.exports = merge(baseConfig, {
   entry: ['./app/main.development'],
 
   module: {
-    loaders: [{
-      test: /\.ts?$/,
-      loaders: ['ts-loader'],
-      exclude: /node_modules/
-    }]
+    rules: [
+      {
+        test: /\.ts?$/,
+        loaders: ['ts-loader'],
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.node$/,
+        loader: 'native-ext-loader',
+        options: {
+          rewritePath: undefined,
+          basePath: ['app.asar', 'build'],
+        },
+      },
+    ],
   },
 
   // 'main.js' in root
   output: {
     path: __dirname,
-    filename: './app/main.js'
+    filename: './app/main.js',
   },
 
   plugins: [
@@ -34,9 +44,9 @@ module.exports = merge(baseConfig, {
     // ),
     new webpack.DefinePlugin({
       'process.env': {
-        NODE_ENV: JSON.stringify('production')
-      }
-    })
+        NODE_ENV: JSON.stringify('production'),
+      },
+    }),
   ],
 
   /**
@@ -52,6 +62,6 @@ module.exports = merge(baseConfig, {
    */
   node: {
     __dirname: false,
-    __filename: false
+    __filename: false,
   },
 });

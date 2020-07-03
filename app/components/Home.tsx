@@ -118,7 +118,6 @@ export default class Home extends React.Component<any, IState> {
             <span>Stream Deck S/N</span>
             <input type="text" value={this.state.settings.deviceSerial} readOnly={true} />
           </label>
-          <h2>Stream Deck devices</h2>
           <ul>{(this.state.settings.deviceList || []).map((d: any) => <li><dfn title={d.path}>{d.serialNumber}</dfn> ({d.model})</li>)}</ul>
         </div>
       </div>
