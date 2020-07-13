@@ -1,5 +1,7 @@
 /// <reference path="./api/electron.d.ts" />
 
+debugger;
+
 import {
   app,
   BrowserWindow,
@@ -8,9 +10,9 @@ import {
   Tray,
   NativeImage,
   ipcMain,
-  IpcAsyncMessageEvent,
   screen,
   Rectangle,
+  IpcMainEvent,
 } from 'electron';
 import {
   listStreamDecks,
@@ -35,6 +37,7 @@ commander
   )
   .option('--brightness <level>', 'Set brightness level to 0-100')
   .option('--showWindow', 'Show rendering window')
+  .option('--disable-high-dpi', 'Disable High DPI support')
   .option('--inspect', 'Show Developer Tools')
   .option('--inspect-brk');
 
@@ -64,6 +67,10 @@ let list: StreamDeckDeviceInfo[] = [];
 let aboutWindow: BrowserWindow | undefined;
 let tray: Tray;
 
+if (commander.disableHighDpi) {
+  app.commandLine.appendSwitch('--force-device-scale-factor', '1');
+  app.commandLine.appendSwitch('--high-dpi-support', '0');
+}
 app.disableHardwareAcceleration();
 
 function showAbout() {
@@ -121,7 +128,7 @@ function reconnectToStreamDeck(deviceSerial?: string): StreamDeck | undefined {
   return openStreamDeck(devicePath || list[0].path);
 }
 
-app.once('ready', () => {
+app.whenReady().then(() => {
   url = commander.url || settings.get('url', DEFAULT_URL);
   currentUrl = url;
   brightness =
@@ -185,7 +192,13 @@ app.once('ready', () => {
   const STRIDE_BROWSER = 4;
   const STRIDE_DECK = 3;
   let frame = Buffer.alloc(PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK);
-  // console.log('width', PANEL_WIDTH, 'height', PANEL_HEIGHT, PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK)
+  // console.log(
+  //   'width',
+  //   PANEL_WIDTH,
+  //   'height',
+  //   PANEL_HEIGHT,
+  //   PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK
+  // );
 
   function rebuildPanelSettings(deck: StreamDeck) {
     PANEL_HEIGHT = deck.KEY_ROWS * deck.ICON_SIZE;
@@ -194,32 +207,30 @@ app.once('ready', () => {
     frame = Buffer.alloc(PANEL_WIDTH * PANEL_HEIGHT * STRIDE_DECK);
   }
 
-  function updateBitmap(rect: Electron.Rectangle, image: NativeImage | Buffer) {
-    // console.log('Update');
+  function updateBitmap(rect: Electron.Rectangle, image: NativeImage) {
+    // console.log(`Update ${rect.x} ${rect.y} ${rect.width} ${rect.height}`);
     //@ts-ignore
-    const srcBmp = (image as NativeImage).getBitmap
-      ? (image as NativeImage).getBitmap()
-      : (image as Buffer);
+    // console.log(image.getSize());
+    const srcBmp = (image as NativeImage).getBitmap();
     const targetBmp = frame;
     // console.log(bmp.length)
     const maxHeight = Math.min(rect.height, PANEL_HEIGHT - rect.y);
     const maxWidth = Math.min(rect.width, PANEL_WIDTH - rect.x);
 
-    // this is somewhat weird.
-    rect.y = 0;
-    rect.x = 0;
-
     for (let y = 0; y < maxHeight; y++) {
       for (let x = 0; x < maxWidth; x++) {
         targetBmp[
-          (rect.y * rect.width + rect.x + y * rect.width + x) * STRIDE_DECK + 0
-        ] = srcBmp[(y * rect.width + x) * STRIDE_BROWSER + 2];
+          (rect.y * PANEL_WIDTH + rect.x + y * PANEL_WIDTH + x) * STRIDE_DECK +
+            0
+        ] = srcBmp[(y * rect.width + x) * STRIDE_BROWSER + 0];
         targetBmp[
-          (rect.y * rect.width + rect.x + y * rect.width + x) * STRIDE_DECK + 1
+          (rect.y * PANEL_WIDTH + rect.x + y * PANEL_WIDTH + x) * STRIDE_DECK +
+            1
         ] = srcBmp[(y * rect.width + x) * STRIDE_BROWSER + 1];
         targetBmp[
-          (rect.y * rect.width + rect.x + y * rect.width + x) * STRIDE_DECK + 2
-        ] = srcBmp[(y * rect.width + x) * STRIDE_BROWSER + 0];
+          (rect.y * PANEL_WIDTH + rect.x + y * PANEL_WIDTH + x) * STRIDE_DECK +
+            2
+        ] = srcBmp[(y * rect.width + x) * STRIDE_BROWSER + 2];
       }
     }
 
@@ -252,7 +263,7 @@ app.once('ready', () => {
 
   function refreshFullDeck(requestSize: Rectangle) {
     if (window) {
-      window.webContents.capturePage(requestSize, (image) => {
+      window.webContents.capturePage(requestSize).then((image) => {
         // const imgSize = image.getSize()
         updateBitmap(
           { x: 0, y: 0, width: requestSize.width, height: requestSize.height },
@@ -266,34 +277,41 @@ app.once('ready', () => {
     deck.on('down', (keyIndex: number) => {
       const { x, y } = keyIndexToXY(keyIndex);
       if (!window) return;
-      window.webContents.sendInputEvent(({
+      window.webContents.sendInputEvent({
         type: 'mouseMove',
         x,
         y,
-      } as any) as Electron.Event);
-      window.webContents.sendInputEvent(({
+        modifiers: [],
+      } as Electron.MouseInputEvent);
+      window.webContents.sendInputEvent({
         type: 'mouseDown',
         x,
         y,
         button: 'left',
         clickCount: 1,
-      } as any) as Electron.Event);
+        modifiers: [],
+      } as Electron.MouseInputEvent);
     });
 
     deck.on('up', (keyIndex: number) => {
       const { x, y } = keyIndexToXY(keyIndex);
       if (!window) return;
-      window.webContents.sendInputEvent(({
+      window.webContents.sendInputEvent({
         type: 'mouseUp',
         x,
         y,
         button: 'left',
         clickCount: 1,
-      } as any) as Electron.Event);
+        modifiers: [],
+      } as Electron.MouseInputEvent);
     });
   }
 
-  //@ts-ignore
+  const PRIMARY_SCALE_FACTOR = screen.getPrimaryDisplay().scaleFactor;
+
+  const WINDOW_WIDTH = Math.round(PANEL_WIDTH / PRIMARY_SCALE_FACTOR);
+  const WINDOW_HEIGHT = Math.round(PANEL_HEIGHT / PRIMARY_SCALE_FACTOR);
+
   let window: BrowserWindow | undefined = new BrowserWindow({
     webPreferences: {
       enableRemoteModule: false,
@@ -305,8 +323,8 @@ app.once('ready', () => {
     resizable: false,
     show: false,
     autoHideMenuBar: true,
-    width: PANEL_WIDTH,
-    height: PANEL_HEIGHT,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
     frame: false,
   });
 
@@ -319,7 +337,7 @@ app.once('ready', () => {
   window.once('ready-to-show', () => {
     if (!window) return;
     if (showWindow) window.show();
-    window.setSize(PANEL_WIDTH, PANEL_HEIGHT);
+    window.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
   });
   window.once('closed', () => {
     //@ts-ignore
@@ -363,11 +381,7 @@ app.once('ready', () => {
 
     refreshFullDeck(requestSize);
 
-    window.webContents.on('paint', (e, dirtyRect, image) => {
-      updateBitmap(dirtyRect, image);
-    });
-
-    window.webContents.beginFrameSubscription((image, dirtyRect) => {
+    window.webContents.beginFrameSubscription(true, (image, dirtyRect) => {
       updateBitmap(dirtyRect, image);
     });
 
@@ -425,11 +439,11 @@ app.once('ready', () => {
 
   ipcMain.on(
     'asynchronous-message',
-    (event: IpcAsyncMessageEvent, arg: CommandMessage) => {
+    (event: IpcMainEvent, arg: CommandMessage) => {
       switch (arg.type) {
         case CommandMessageType.GET_HELP:
           commander.outputHelp((str) => {
-            event.sender.send('asynchronous-message', {
+            event.reply('asynchronous-reply', {
               type: CommandMessageType.RETURN_HELP,
               help: str,
             });
@@ -437,7 +451,7 @@ app.once('ready', () => {
           });
           break;
         case CommandMessageType.GET_SETTINGS:
-          event.sender.send('asynchronous-message', {
+          event.reply('asynchronous-reply', {
             type: CommandMessageType.SET_SETTINGS,
             settings: {
               url,
@@ -467,7 +481,7 @@ app.once('ready', () => {
             settings.set('brightness', brightness);
             setBrightness(brightness);
           }
-          event.sender.send('asynchronous-message', {
+          event.reply('asynchronous-reply', {
             type: CommandMessageType.ACK,
           });
           break;

@@ -1,7 +1,7 @@
 {
   "name": "stream-deck-browser",
   "productName": "Stream Deck Browser",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A web browser running on your Elgato Stream Deck",
   "main": "main.js",
   "scripts": {
@@ -12,10 +12,10 @@
     "hot-server": "cross-env NODE_ENV=development node --max_old_space_size=2096 server.js",
     "build-main": "cross-env NODE_ENV=production tsc -p tsconfig.electron-main.json && copy .\\app\\main.development.js .\\app\\main.js",
     "build-renderer": "cross-env NODE_ENV=production node ./node_modules/webpack/bin/webpack --config webpack.config.production.js --progress --profile --colors",
-    "electron-rebuild": "electron-rebuild",
+    "electron-rebuild": "electron-rebuild && electron-rebuild --module-dir ./app/",
     "clean": "del .\\app\\main.development.js",
     "build": "npm run clean && npm run build-main && npm run build-renderer",
-    "start": "cross-env NODE_ENV=production electron --inspect-brk ./app/",
+    "start": "cross-env NODE_ENV=production electron --inspect ./app/",
     "start-hot": "tsc -p tsconfig.electron-main.json && cross-env HOT=1 NODE_ENV=development electron --inspect ./app/main.development",
     "postinstall": "npm run build",
     "dev": "npm run hot-server -- --start-hot",
