@@ -148,7 +148,6 @@ app.once('ready', () => {
     }
   }
 
-  debugger;
   let deck: StreamDeck | undefined = openStreamDeck(devicePath || list[0].path);
 
   setBrightness(brightness);

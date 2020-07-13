@@ -14,10 +14,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@julusian/jpeg-turbo": "0.5.4",
+    "commander": "2.20.0",
     "electron-settings": "^3.2.0",
     "electron-titlebar-windows": "^3.0.0",
-    "node-hid": "1.3.0",
-    "@julusian/jpeg-turbo": "0.5.4"
+    "elgato-stream-deck": "3.3.0",
+    "node-hid": "1.3.0"
   },
   "resolutions": {
     "growl": "^1.10.0",

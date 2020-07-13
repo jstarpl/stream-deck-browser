@@ -10,12 +10,12 @@
     "test-watch": "npm test -- --watch",
     "test-e2e": "cross-env NODE_ENV=test node --trace-warnings ./test/runTests.js e2e",
     "hot-server": "cross-env NODE_ENV=development node --max_old_space_size=2096 server.js",
-    "build-main": "cross-env NODE_ENV=production node ./node_modules/webpack/bin/webpack --config webpack.config.electron.js --progress --profile --colors",
+    "build-main": "cross-env NODE_ENV=production tsc -p tsconfig.electron-main.json && copy .\\app\\main.development.js .\\app\\main.js",
     "build-renderer": "cross-env NODE_ENV=production node ./node_modules/webpack/bin/webpack --config webpack.config.production.js --progress --profile --colors",
     "electron-rebuild": "electron-rebuild",
     "clean": "del .\\app\\main.development.js",
     "build": "npm run clean && npm run build-main && npm run build-renderer",
-    "start": "cross-env NODE_ENV=production electron ./app/",
+    "start": "cross-env NODE_ENV=production electron --inspect-brk ./app/",
     "start-hot": "tsc -p tsconfig.electron-main.json && cross-env HOT=1 NODE_ENV=development electron --inspect ./app/main.development",
     "postinstall": "npm run build",
     "dev": "npm run hot-server -- --start-hot",
@@ -49,7 +49,7 @@
   "build": {
     "productName": "Stream Deck Browser",
     "appId": "io.github.jstarpl.stream-deck-browser",
-    "asar": false,
+    "asar": true,
     "dmg": {
       "contents": [
         {
@@ -73,7 +73,8 @@
       "main.js.map",
       "package.json",
       "build/",
-      "icon.png"
+      "icon.png",
+      "api/**/*.js"
     ],
     "extraFiles": [
       {
@@ -185,10 +186,7 @@
   },
   "dependencies": {
     "@julusian/jpeg-turbo": "0.5.4",
-    "commander": "^2.20.0",
     "electron-debug": "^1.1.0",
-    "elgato-stream-deck": "^3.3.0",
-    "font-awesome": "^4.7.0",
     "history": "^4.6.1",
     "node-hid": "1.3.0",
     "react": "^16.0.0",
