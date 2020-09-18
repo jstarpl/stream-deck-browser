@@ -1,7 +1,7 @@
 {
   "name": "stream-deck-browser",
   "productName": "Stream Deck Browser",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A web browser running on your Elgato Stream Deck",
   "main": "main.js",
   "scripts": {
@@ -107,6 +107,11 @@
   "bin": {
     "electron": "./node_modules/.bin/electron"
   },
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "10.1.2",
+    "arch": "x64"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jstarpl/stream-deck-browser.git"
@@ -186,7 +191,6 @@
     "webpack-merge": "^4.1.1"
   },
   "dependencies": {
-    "@julusian/jpeg-turbo": "0.5.4",
     "electron-debug": "^1.1.0",
     "history": "^4.6.1",
     "node-abi": "^2.19.1",
